@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prova Online</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Prova de {{ exam_name }} - Avaliado: {{ name }}</h1>
+        <div class="video-container">
+            <video id="video" width="640" height="480" autoplay></video>
+            <p id="notification"></p>
+        </div>
+        <div class="controls">
+            <button id="warning-button">Emitir Aviso</button>
+            <button id="disqualify-button">Desclassificar</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="disqualification-modal" class="modal">
+        <div class="modal-content">
+            <h2>Você foi desclassificado</h2>
+            <p>Infelizmente, você não pode continuar com a prova.</p>
+        </div>
+    </div>
+
+    <script>
+        var video = document.getElementById('video');
+        var notification = document.getElementById('notification');
+        var warningButton = document.getElementById('warning-button');
+        var disqualifyButton = document.getElementById('disqualify-button');
+        var disqualificationModal = document.getElementById('disqualification-modal');
+        var warningCount = 0;
+
+        function startVideo() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function(err) {
+                    console.log("Erro ao acessar a câmera: ", err);
+                });
+        }
+
+        video.addEventListener('play', function() {
+            var lastTimeNoFace = 0;
+
+            setInterval(function() {
+                fetch('/video_feed')
+                    .then(response => {
+                        if (response.headers.get("Content-Type") === "text/plain") {
+                            response.text().then(text => {
+                                if (text.trim() === "Desclassificado") {
+                                    showDisqualificationModal();
+                                }
+                            });
+                        } else {
+                            var img = document.createElement('img');
+                            img.src = URL.createObjectURL(response.body);
+                            img.onload = function() {
+                                video.srcObject = img.src;
+                                URL.revokeObjectURL(img.src);
+                            };
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Erro ao buscar o feed de vídeo: ", err);
+                    });
+            }, 1000);
+        });
+
+        startVideo();
+
+        warningButton.addEventListener('click', function() {
+            warningCount++;
+            if (warningCount < 3) {
+                notification.textContent = `ATENÇÃO!!! Não olhe ao redor. Esse é o ${warningCount}º aviso.`;
+                setTimeout(function() {
+                    notification.textContent = "";
+                }, 15000);
+            } else {
+                showDisqualificationModal();
+            }
+        });
+
+        disqualifyButton.addEventListener('click', function() {
+            showDisqualificationModal();
+        });
+
+        function showDisqualificationModal() {
+            notification.textContent = "Você foi desclassificado";
+            disqualificationModal.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

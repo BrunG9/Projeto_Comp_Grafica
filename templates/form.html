@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informações da Prova</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Informações da Prova</h1>
+        <form action="/start_exam" method="post">
+            <label for="name">Nome do Avaliado:</label>
+            <input type="text" id="name" name="name" required>
+            <br>
+            <label for="exam_name">Nome da Prova:</label>
+            <input type="text" id="exam_name" name="exam_name" required>
+            <br>
+            <label for="exam_number">Número da Prova:</label>
+            <input type="text" id="exam_number" name="exam_number" required>
+            <br>
+            <button type="submit">Iniciar Prova</button>
+        </form>
+    </div>
+</body>
+</html>
