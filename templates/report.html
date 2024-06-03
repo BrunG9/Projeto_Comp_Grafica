@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Detecção</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Relatório de Detecção</h1>
+        <p>Total de frames: {{ total_frames }}</p>
+        <p>Frames com face detectada: {{ face_detected_frames }}</p>
+        <p>Frames sem face detectada: {{ no_face_detected_frames }}</p>
+        <p>Taxa de detecção: {{ detection_rate }}%</p>
+        <p>Taxa de não detecção: {{ non_detection_rate }}%</p>
+        <img src="{{ url_for('plot_png') }}" alt="Gráfico de Detecção">
+    </div>
+</body>
+</html>

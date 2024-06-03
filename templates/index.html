@@ -4,18 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prova Online</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Prova de {{ exam_name }} - Avaliado: {{ name }}</h1>
+        <h1>{{ exam_name }} - Avaliado: {{ name }}</h1>
         <div class="video-container">
             <video id="video" width="640" height="480" autoplay></video>
             <p id="notification"></p>
         </div>
-        <div class="controls">
-            <button id="warning-button">Emitir Aviso</button>
-            <button id="disqualify-button">Desclassificar</button>
+        <div class="buttons">
+            <button onclick="sendWarning()">Enviar Aviso</button>
+            <button onclick="disqualify()">Desclassificar</button>
         </div>
     </div>
 
@@ -30,9 +53,7 @@
     <script>
         var video = document.getElementById('video');
         var notification = document.getElementById('notification');
-        var warningButton = document.getElementById('warning-button');
-        var disqualifyButton = document.getElementById('disqualify-button');
-        var disqualificationModal = document.getElementById('disqualification-modal');
+        var modal = document.getElementById('disqualification-modal');
         var warningCount = 0;
 
         function startVideo() {
@@ -45,55 +66,29 @@
                 });
         }
 
-        video.addEventListener('play', function() {
-            var lastTimeNoFace = 0;
+        function sendWarning() {
+            warningCount++;
+            if (warningCount <= 3) {
+                notification.textContent = `ATENÇÃO!!! Não olhe ao redor. Esse é o ${warningCount}º aviso`;
+                setTimeout(function() {
+                    notification.textContent = '';
+                }, 15000);
+                if (warningCount === 3) {
+                    showDisqualifiedPopup();
+                }
+            }
+        }
 
-            setInterval(function() {
-                fetch('/video_feed')
-                    .then(response => {
-                        if (response.headers.get("Content-Type") === "text/plain") {
-                            response.text().then(text => {
-                                if (text.trim() === "Desclassificado") {
-                                    showDisqualificationModal();
-                                }
-                            });
-                        } else {
-                            var img = document.createElement('img');
-                            img.src = URL.createObjectURL(response.body);
-                            img.onload = function() {
-                                video.srcObject = img.src;
-                                URL.revokeObjectURL(img.src);
-                            };
-                        }
-                    })
-                    .catch(err => {
-                        console.error("Erro ao buscar o feed de vídeo: ", err);
-                    });
-            }, 1000);
-        });
+        function disqualify() {
+            showDisqualifiedPopup();
+        }
+
+        function showDisqualifiedPopup() {
+            modal.style.display = "block";
+            // Implement additional logic to prevent further actions
+        }
 
         startVideo();
-
-        warningButton.addEventListener('click', function() {
-            warningCount++;
-            if (warningCount < 3) {
-                notification.textContent = `ATENÇÃO!!! Não olhe ao redor. Esse é o ${warningCount}º aviso.`;
-                setTimeout(function() {
-                    notification.textContent = "";
-                }, 15000);
-            } else {
-                showDisqualificationModal();
-            }
-        });
-
-        disqualifyButton.addEventListener('click', function() {
-            showDisqualificationModal();
-        });
-
-        function showDisqualificationModal() {
-            notification.textContent = "Você foi desclassificado";
-            disqualificationModal.style.display = 'block';
-        }
     </script>
 </body>
 </html>
